@@ -27,17 +27,23 @@ import androidx.core.content.ContextCompat
 
 import com.example.homeloketnotes.domain.repositry.CameraRepository
 import com.example.locketnotes.R
+import com.example.locketnotes.presentation.domain.model.PhotoUpload
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.database.ktx.database
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.ktx.storage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import javax.inject.Inject
 
 class CameraRepositoryImpl @Inject constructor(
     private val application: Application
-): CameraRepository{
+): CameraRepository {
 
     private var recording: Recording? = null
 
@@ -86,7 +92,8 @@ class CameraRepositoryImpl @Inject constructor(
 
     private fun createTempImageUri(bitmap: Bitmap): String {
         return try {
-            val tempFile = File(application.cacheDir, "temp_photo_${System.currentTimeMillis()}.jpg")
+            val tempFile =
+                File(application.cacheDir, "temp_photo_${System.currentTimeMillis()}.jpg")
             val outputStream = FileOutputStream(tempFile)
             bitmap.compress(Bitmap.CompressFormat.JPEG, 90, outputStream)
             outputStream.close()
@@ -157,7 +164,7 @@ class CameraRepositoryImpl @Inject constructor(
     override suspend fun recordVideo(
         controller: LifecycleCameraController
     ) {
-        if (recording != null){
+        if (recording != null) {
             recording?.stop()
             recording = null
             return
@@ -173,16 +180,78 @@ class CameraRepositoryImpl @Inject constructor(
             FileOutputOptions.Builder(file).build(),
             AudioConfig.create(true),
             ContextCompat.getMainExecutor(application)
-        ){ event ->
-            if(event is VideoRecordEvent.Finalize){
-                if (event.hasError()){
+        ) { event ->
+            if (event is VideoRecordEvent.Finalize) {
+                if (event.hasError()) {
                     recording?.close()
                     recording = null
-                } else{
+                } else {
                     CoroutineScope(Dispatchers.IO).launch {
                         saveVideo(file)
                     }
                 }
+            }
+        }
+    }
+
+    private val storage = Firebase.storage
+    private val database = Firebase.database
+    private val auth = Firebase.auth
+
+    override suspend fun uploadPhotoToFirebase(
+        bitmap: Bitmap,
+        message: String,
+        onSuccess: (String) -> Unit,
+        onError: (Exception) -> Unit
+    ) {
+        withContext(Dispatchers.IO) {
+            try {
+                val baos = ByteArrayOutputStream()
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 85, baos)
+                val imageBytes = baos.toByteArray()
+                val base64Image = android.util.Base64.encodeToString(imageBytes, android.util.Base64.DEFAULT)
+
+                val userId = auth.currentUser?.uid
+                if (userId == null) {
+                    onError(Exception("Không tìm thấy người dùng đã đăng nhập"))
+                    return@withContext
+                }
+
+                val photoKey = database.reference
+                    .child("user")
+                    .child(userId)
+                    .child("photos")
+                    .push()
+                    .key
+
+                if (photoKey == null) {
+                    onError(Exception("Không thể tạo key ảnh"))
+                    return@withContext
+                }
+
+                val photoUpload = PhotoUpload(
+                    id = photoKey,
+                    imageUrl = base64Image,
+                    message = message,
+                    timestamp = System.currentTimeMillis(),
+                    userId = userId
+                )
+
+                database.reference
+                    .child("user")
+                    .child(userId)
+                    .child("photos")
+                    .child(photoKey)
+                    .setValue(photoUpload)
+                    .addOnSuccessListener {
+                        onSuccess("Ảnh đã được lưu vào tài khoản người dùng!")
+                    }
+                    .addOnFailureListener { ex ->
+                        onError(ex)
+                    }
+
+            } catch (e: Exception) {
+                onError(e)
             }
         }
     }
@@ -242,6 +311,5 @@ class CameraRepositoryImpl @Inject constructor(
             }
         }
     }
-
 
 }

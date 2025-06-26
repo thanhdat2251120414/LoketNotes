@@ -16,4 +16,11 @@ interface CameraRepository {
     suspend fun recordVideo(
         controller: LifecycleCameraController
     )
+
+    suspend fun uploadPhotoToFirebase(
+        bitmap: Bitmap,
+        message: String,
+        onSuccess: (String) -> Unit,
+        onError: (Exception) -> Unit
+    )
 }

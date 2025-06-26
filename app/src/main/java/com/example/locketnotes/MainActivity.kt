@@ -15,6 +15,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.locketnotes.ui.theme.LocketNotesTheme
 import com.example.locketnotes.presentation.Camera.CameraScreen
+import com.example.locketnotes.presentation.Camera.LoginScreen
+import com.example.locketnotes.presentation.Camera.RegisterScreen
 import com.example.locketnotes.presentation.chat.MessengerScreen
 import com.example.myapplication.MyStoriesScreen
 import dagger.hilt.android.AndroidEntryPoint
@@ -58,7 +60,9 @@ class MainActivity : ComponentActivity() {
 fun AppNavigation(activity: Activity) {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = "camera") {
+    NavHost(navController = navController, startDestination = "login") {
+        composable("register") { RegisterScreen(navController = navController) }
+        composable("login") { LoginScreen(navController) }
         composable("camera") {CameraScreen(activity, navController) }
         composable("chat") {MessengerScreen()}
         composable("MyStories") { MyStoriesScreen(navController)}

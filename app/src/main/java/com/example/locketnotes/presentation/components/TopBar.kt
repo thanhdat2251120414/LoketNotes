@@ -9,7 +9,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Message
-import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,7 +20,6 @@ import androidx.compose.ui.unit.dp
 import com.example.locketnotes.R
 import androidx.compose.material3.Text
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -40,7 +38,7 @@ fun TopBar(centerText: String, navController: NavController) {
 
         // Logo tròn
         Image(
-            painter = painterResource(id = R.drawable.logo), // thay bằng ảnh thật
+            painter = painterResource(id = R.drawable.logo),
             contentDescription = "Logo",
             modifier = Modifier
                 .size(50.dp)

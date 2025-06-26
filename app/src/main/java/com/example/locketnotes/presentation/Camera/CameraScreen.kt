@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.Cameraswitch
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Message
 import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -99,8 +100,46 @@ fun CameraScreen(
                 .fillMaxSize()
                 .padding(horizontal = 10.dp),
         ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 50.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Home,
+                    contentDescription = "Logo Icon",
+                    tint = Color.Black,
+                    modifier = Modifier.size(35.dp)
+                )
 
-            TopBar(centerText = "Home",navController = navController)
+                Spacer(modifier = Modifier.weight(1f))
+
+                Box(
+                    modifier = Modifier
+                        .width(250.dp)
+                        .height(50.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color.LightGray),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "HOME",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 24.sp,
+                    )
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                Icon(
+                    imageVector = Icons.Default.Message,
+                    contentDescription = "Message Icon",
+                    tint = Color.Black,
+                    modifier = Modifier.size(35.dp)
+                )
+            }
 
             Row(
                 modifier = Modifier
@@ -224,6 +263,14 @@ fun CameraScreen(
                                 tint = Color.Black,
                                 modifier = Modifier.size(26.dp)
                             )
+                        }
+
+                        Button(onClick = {
+                            navController.navigate("login"){
+                                popUpTo(0)
+                            }
+                        }) {
+                            Text("Logout")
                         }
                     }
                 }

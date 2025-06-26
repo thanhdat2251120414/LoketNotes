@@ -42,6 +42,7 @@ import java.io.IOException
 import com.example.locketnotes.presentation.Camera.CameraViewModel
 
 
+
 @Composable
 fun PreviewPhoto(
     photoUri: String,
@@ -50,19 +51,31 @@ fun PreviewPhoto(
 ) {
     val context = LocalContext.current
     val errorMessage by viewModel.errorMessage.collectAsState()
-    var text by remember { mutableStateOf("") }
+    val uploadStatus by viewModel.uploadStatus.collectAsState()
+    var text by remember { mutableStateOf("") } // Changed from 'message' to 'text'
+    var isUploading by remember { mutableStateOf(false) }
 
     LaunchedEffect(errorMessage) {
-        errorMessage?.let { message ->
-            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        errorMessage?.let { msg ->
+            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
             viewModel.clearError()
+            isUploading = false
+        }
+    }
+
+    LaunchedEffect(uploadStatus) {
+        uploadStatus?.let { msg ->
+            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+            viewModel.clearUploadStatus()
+            isUploading = false
+            onBack()
         }
     }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 10.dp),
+            .padding(horizontal = 10.dp)
     ) {
         Row(
             modifier = Modifier
@@ -72,13 +85,14 @@ fun PreviewPhoto(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Spacer(modifier = Modifier.width(35.dp))
+
             Box(
                 modifier = Modifier
                     .width(250.dp)
                     .height(50.dp)
                     .clip(RoundedCornerShape(16.dp))
                     .background(Color.LightGray),
-                contentAlignment = Alignment.Center,
+                contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = "Send to...",
@@ -95,15 +109,12 @@ fun PreviewPhoto(
                     .size(35.dp)
                     .clickable {
                         viewModel.saveCapturedPhoto()
-                        Toast.makeText(context, "Photo saved to gallery!", Toast.LENGTH_SHORT)
-                            .show()
-                        onBack()
+                        Toast.makeText(context, "Photo saved to gallery!", Toast.LENGTH_SHORT).show()
                     }
             )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-
 
         Box(
             modifier = Modifier
@@ -114,12 +125,9 @@ fun PreviewPhoto(
             AsyncImage(
                 model = photoUri,
                 contentDescription = "Captured Photo",
-                modifier = Modifier
-                    .fillMaxSize(),
+                modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
             )
-
-
 
             OutlinedTextField(
                 value = text,
@@ -167,23 +175,28 @@ fun PreviewPhoto(
                 modifier = Modifier
                     .size(60.dp)
                     .clip(CircleShape)
-                    .background(Color.Black)
-                    .clickable {
-                        viewModel.saveCapturedPhoto()
-                        Toast.makeText(context, "Photo saved to gallery!", Toast.LENGTH_SHORT)
-                            .show()
-                        onBack()
+                    .background(if (isUploading) Color.Gray else Color.Black)
+                    .clickable(enabled = !isUploading) {
+                        if (!isUploading) {
+                            isUploading = true
+                            viewModel.uploadPhotoToFirebase(text) // Use 'text' instead of 'message'
+                            Toast.makeText(context, "Uploading photo...", Toast.LENGTH_SHORT).show()
+                        }
                     },
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Default.Send,
-                    contentDescription = "Send",
-                    tint = Color.White,
-                    modifier = Modifier.size(28.dp)
-                )
+                if (isUploading) {
+                    // You can add a loading indicator here
+                    Text("...", color = Color.White)
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.Send,
+                        contentDescription = "Send",
+                        tint = Color.White,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
             }
-
         }
     }
 }

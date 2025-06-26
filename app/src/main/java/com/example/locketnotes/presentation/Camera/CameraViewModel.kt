@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.homeloketnotes.domain.repositry.CameraRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -31,12 +32,38 @@ class CameraViewModel @Inject constructor(
 
     private var pendingPhotoBitmap: Bitmap? = null
 
+
+    private val _uploadStatus = MutableStateFlow<String?>(null)
+    val uploadStatus: StateFlow<String?> = _uploadStatus.asStateFlow()
+
+    private var capturedBitmap: Bitmap? = null
+
+    fun uploadPhotoToFirebase(message: String) {
+        capturedBitmap?.let { bitmap ->
+            viewModelScope.launch {
+                cameraRepository.uploadPhotoToFirebase(
+                    bitmap = bitmap,
+                    message = message,
+                    onSuccess = { successMessage ->
+                        _uploadStatus.value = successMessage
+                    },
+                    onError = { exception ->
+                        _errorMessage.value = "Upload failed: ${exception.message}"
+                    }
+                )
+            }
+        } ?: run {
+            _errorMessage.value = "No photo to upload"
+        }
+    }
+
     fun onTakePhoto(controller: LifecycleCameraController) {
         viewModelScope.launch {
             try {
                 cameraRepository.takePhoto(controller) { bitmap, tempUri ->
                     // Store the bitmap temporarily and show preview
                     pendingPhotoBitmap = bitmap
+                    capturedBitmap = bitmap
                     _capturedPhotoUri.value = tempUri
                     _showPreview.value = true
                 }
@@ -76,6 +103,10 @@ class CameraViewModel @Inject constructor(
         pendingPhotoBitmap?.recycle()
     }
 
+    fun clearUploadStatus() {
+        _uploadStatus.value = null
+    }
+
     fun onRecordVideo(
         controller: LifecycleCameraController
     ){
@@ -86,4 +117,5 @@ class CameraViewModel @Inject constructor(
             cameraRepository.recordVideo(controller)
         }
     }
+
 }
