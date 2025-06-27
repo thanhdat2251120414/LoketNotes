@@ -49,6 +49,9 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview:1.6.1")
     implementation("androidx.activity:activity-compose:1.8.1")
     implementation("androidx.compose.material3:material3:1.2.1")
+    implementation ("com.google.android.gms:play-services-auth:20.7.0")
+    implementation ("com.google.firebase:firebase-auth-ktx:22.3.0")
+    implementation ("com.google.firebase:firebase-database-ktx:20.3.0")
 
 
     implementation(libs.androidx.core.ktx)
