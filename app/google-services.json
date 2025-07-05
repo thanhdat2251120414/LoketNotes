@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1057012748159",
+    "project_id": "locketnotes-8cbcd",
+    "storage_bucket": "locketnotes-8cbcd.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1057012748159:android:0eebb0d22fa2ae5ddc544a",
+        "android_client_info": {
+          "package_name": "com.example.locketnotes"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA7Vkpjq8AOAN0AucVw7gX4NDyFKqH56SI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
