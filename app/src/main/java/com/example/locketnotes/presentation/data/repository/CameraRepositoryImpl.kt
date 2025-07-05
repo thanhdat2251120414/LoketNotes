@@ -39,7 +39,7 @@ import java.io.FileOutputStream
 import javax.inject.Inject
 
 
-class CameraRepositoryImpl1 @Inject constructor(
+class CameraRepositoryImpl @Inject constructor(
     private val application: Application
 ): CameraRepository {
 

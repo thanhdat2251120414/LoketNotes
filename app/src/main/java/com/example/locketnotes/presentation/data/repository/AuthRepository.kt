@@ -218,7 +218,8 @@ suspend fun uploadToCloudinary(
             val baos = ByteArrayOutputStream()
             bitmap.compress(Bitmap.CompressFormat.JPEG, 85, baos)
             val imageBytes = baos.toByteArray()
-            val base64Image = android.util.Base64.encodeToString(imageBytes, android.util.Base64.DEFAULT)
+            val base64Image =
+                android.util.Base64.encodeToString(imageBytes, android.util.Base64.DEFAULT)
 
             val cloudName = "dtzum2dzo"
             val apiKey = "373418943822732"
