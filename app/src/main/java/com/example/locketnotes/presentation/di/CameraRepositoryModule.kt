@@ -17,4 +17,4 @@ abstract class CameraRepositoryModule {
     abstract fun bindCameraRepository(
         cameraRepositoryImpl: CameraRepositoryImpl
     ): CameraRepository
-}git add .
+}
