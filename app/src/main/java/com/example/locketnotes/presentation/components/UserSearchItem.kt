@@ -80,7 +80,9 @@ fun UserSearchItem(
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier.height(36.dp)
             ) {
-                Text("Kết bạn", fontSize = 14.sp)
+
+                Text(if (user.isRequested) "Đã gửi" else "Kết bạn",fontSize = 14.sp)
+
             }
         }
     }

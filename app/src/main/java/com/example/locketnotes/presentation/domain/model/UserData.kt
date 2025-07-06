@@ -6,7 +6,8 @@ data class UserData(
     val email: String = "",
     val gender: String? = null,
     val birthDate: Long? = null,
-    val profileImageUrl: String? = null
+    val profileImageUrl: String? = null,
+    val isRequested: Boolean = false
 )
 /*data class User(
     val id: String = "",

@@ -24,8 +24,8 @@ import com.example.locketnotes.presentation.domain.model.Friend
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FriendsScreen(navController: NavController,
-    viewModel: FriendsViewModel = viewModel(),
-    onNavigateToProfile: (String) -> Unit = {}
+                  viewModel: FriendsViewModel = viewModel(),
+                  onNavigateToProfile: (String) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current

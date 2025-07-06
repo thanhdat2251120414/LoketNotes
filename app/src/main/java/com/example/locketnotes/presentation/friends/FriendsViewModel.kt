@@ -1,5 +1,7 @@
 package com.example.locketnotes.presentation.friends
 
+
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.locketnotes.presentation.data.repository.FriendsRepository
@@ -79,11 +81,23 @@ class FriendsViewModel(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isSearching = true)
 
+            // Gọi hàm lấy các lời mời đã gửi
+            val sentRequestIds = (repository as? FriendsRepositoryImpl)
+                ?.hasSentFriendRequests()
+                ?.getOrNull()
+                ?.map { it.receiverId }
+                ?: emptyList()
+
+            // Gọi searchUsers như cũ
             repository.searchUsers(query).fold(
-                onSuccess = { users: List<UserData> ->
+                onSuccess = { users ->
+                    val markedUsers = users.map {
+                        it.copy(isRequested = sentRequestIds.contains(it.userId))
+                    }
+
                     _uiState.value = _uiState.value.copy(
                         isSearching = false,
-                        searchResults = users
+                        searchResults = markedUsers
                     )
                 },
                 onFailure = { error ->
@@ -95,6 +109,8 @@ class FriendsViewModel(
             )
         }
     }
+
+
 
     fun sendFriendRequest(userId: String) {
         viewModelScope.launch {
