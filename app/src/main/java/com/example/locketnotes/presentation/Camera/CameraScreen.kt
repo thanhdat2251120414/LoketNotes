@@ -115,7 +115,13 @@ fun CameraScreen(
                     imageVector = Icons.Default.Home,
                     contentDescription = "Logo Icon",
                     tint = Color.Black,
-                    modifier = Modifier.size(35.dp)
+                    modifier = Modifier
+                        .size(35.dp)
+                        .clickable {
+                            navController.navigate("newsfeed") {
+                                launchSingleTop = true
+                            }
+                        }
                 )
 
                 Spacer(modifier = Modifier.weight(1f))
@@ -156,7 +162,11 @@ fun CameraScreen(
                         .width(150.dp)
                         .height(40.dp)
                         .clip(RoundedCornerShape(16.dp))
-                        .background(Color.LightGray),
+                        .background(Color.LightGray)
+                        .clickable {
+                            // Điều hướng sang trang friends
+                            navController.navigate("friends")
+                        },
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -270,7 +280,7 @@ fun CameraScreen(
                         }
 
                         Button(onClick = {
-                            navController.navigate("friends"){
+                            navController.navigate("setting"){
                                 popUpTo(0)
                             }
                         }) {

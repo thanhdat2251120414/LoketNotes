@@ -7,7 +7,6 @@ import com.example.locketnotes.presentation.data.repository.FriendsRepositoryImp
 import com.example.locketnotes.presentation.domain.model.Friend
 import com.example.locketnotes.presentation.domain.model.FriendRequest
 import com.example.locketnotes.presentation.domain.model.UserData
-
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,6 +29,10 @@ class FriendsViewModel(
     private val _uiState = MutableStateFlow(FriendsUiState())
     val uiState: StateFlow<FriendsUiState> = _uiState.asStateFlow()
 
+    // Danh sách các userId của bạn bè
+    private val _friendIds = MutableStateFlow<Set<String>>(emptySet())
+    val friendIds: StateFlow<Set<String>> = _friendIds.asStateFlow()
+
     init {
         loadFriends()
         loadFriendRequests()
@@ -40,7 +43,10 @@ class FriendsViewModel(
             _uiState.value = _uiState.value.copy(isLoading = true)
 
             repository.getFriends().fold(
-                onSuccess = { friends: List<Friend> ->
+                onSuccess = { friends ->
+                    val ids = friends.mapNotNull { it.user.userId }.toSet()
+                    _friendIds.value = ids
+
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         friends = friends,
@@ -60,7 +66,7 @@ class FriendsViewModel(
     fun loadFriendRequests() {
         viewModelScope.launch {
             repository.getFriendRequests().fold(
-                onSuccess = { requests: List<FriendRequest> ->
+                onSuccess = { requests ->
                     _uiState.value = _uiState.value.copy(friendRequests = requests)
                 },
                 onFailure = { error ->
@@ -80,7 +86,7 @@ class FriendsViewModel(
             _uiState.value = _uiState.value.copy(isSearching = true)
 
             repository.searchUsers(query).fold(
-                onSuccess = { users: List<UserData> ->
+                onSuccess = { users ->
                     _uiState.value = _uiState.value.copy(
                         isSearching = false,
                         searchResults = users
@@ -160,5 +166,10 @@ class FriendsViewModel(
 
     private fun showToast(message: String) {
         _uiState.value = _uiState.value.copy(toastMessage = message)
+    }
+
+    // ✅ Hàm kiểm tra một user có phải là bạn bè không
+    fun isFriendWith(userId: String): Boolean {
+        return friendIds.value.contains(userId)
     }
 }

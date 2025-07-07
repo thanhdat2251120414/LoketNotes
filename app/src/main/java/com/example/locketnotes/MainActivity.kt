@@ -22,6 +22,7 @@ import com.example.locketnotes.presentation.chat.MessengerScreen
 import com.example.locketnotes.presentation.friends.FriendsScreen
 //import com.example.locketnotes.presentation.friends.FriendsScreen
 import com.example.locketnotes.presentation.screen.MyStoriesScreen
+import com.example.locketnotes.presentation.screens.NewsFeedScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -63,7 +64,7 @@ class MainActivity : ComponentActivity() {
 fun AppNavigation(activity: Activity) {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = "login") {
+    NavHost(navController = navController, startDestination = "camera") {
         composable("register") { RegisterScreen(navController = navController) }
         composable("login") { LoginScreen(navController) }
         composable("camera") {CameraScreen(activity, navController) }
@@ -72,6 +73,6 @@ fun AppNavigation(activity: Activity) {
         composable("setting") { SettingsScreen(navController) }
         composable("myprofile") { MyProfileScreen(navController) }
         composable("friends"){FriendsScreen(navController)}
-
+        composable("newsfeed") { NewsFeedScreen(navController = navController) }
     }
 }
