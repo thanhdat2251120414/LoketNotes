@@ -21,7 +21,8 @@ import com.example.locketnotes.presentation.Camera.SettingsScreen
 import com.example.locketnotes.presentation.chat.MessengerScreen
 import com.example.locketnotes.presentation.friends.FriendsScreen
 //import com.example.locketnotes.presentation.friends.FriendsScreen
-import com.example.locketnotes.presentation.screen.MyStoriesScreen
+import com.example.locketnotes.presentation.screens.MyStoriesScreen
+import com.example.locketnotes.presentation.screens.NewsFeedScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -72,6 +73,6 @@ fun AppNavigation(activity: Activity) {
         composable("setting") { SettingsScreen(navController) }
         composable("myprofile") { MyProfileScreen(navController) }
         composable("friends"){FriendsScreen(navController)}
-
+        composable("newsfeed") { NewsFeedScreen(navController = navController) }
     }
 }

@@ -1,4 +1,4 @@
-package com.example.locketnotes.presentation.screen
+package com.example.locketnotes.presentation.screens
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding

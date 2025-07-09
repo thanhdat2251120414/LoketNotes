@@ -8,14 +8,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-
+import com.example.locketnotes.presentation.domain.model.RequestStatus
 import com.example.locketnotes.presentation.domain.model.UserData
 
 @Composable
@@ -54,16 +54,7 @@ fun UserSearchItem(
             Spacer(modifier = Modifier.width(12.dp))
 
             // User Info
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-//                Text(
-//                    text = user.displayName,
-//                    fontSize = 16.sp,
-//                    fontWeight = FontWeight.Medium,
-//                    color = MaterialTheme.colorScheme.onSurface
-//                )
-
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "@${user.username}",
                     fontSize = 14.sp,
@@ -71,18 +62,34 @@ fun UserSearchItem(
                 )
             }
 
-            // Add Friend Button
-            Button(
-                onClick = { onSendRequest(user) },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                ),
-                shape = RoundedCornerShape(8.dp),
-                modifier = Modifier.height(36.dp)
-            ) {
-
-                Text(if (user.isRequested) "Đã gửi" else "Kết bạn",fontSize = 14.sp)
-
+            // Action Button
+            when (user.requestStatus) {
+                RequestStatus.ACCEPTED -> {
+                    Text(
+                        text = "Bạn bè",
+                        color = Color.Gray,
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(horizontal = 8.dp)
+                    )
+                }
+                RequestStatus.PENDING -> {
+                    Text(
+                        text = "Chờ phản hồi",
+                        color = Color.Gray,
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(horizontal = 8.dp)
+                    )
+                }
+                else -> {
+                    Button(
+                        onClick = { onSendRequest(user) },
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.height(36.dp)
+                    ) {
+                        Text("Kết bạn", fontSize = 14.sp)
+                    }
+                }
             }
         }
     }

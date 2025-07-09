@@ -7,7 +7,8 @@ data class UserData(
     val gender: String? = null,
     val birthDate: Long? = null,
     val profileImageUrl: String? = null,
-    val isRequested: Boolean = false
+    val isRequested: Boolean = false,
+    val requestStatus: RequestStatus? = null
 )
 /*data class User(
     val id: String = "",

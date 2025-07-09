@@ -29,7 +29,6 @@ class FriendsRepositoryImpl : FriendsRepository {
     override suspend fun searchUsers(query: String): Result<List<UserData>> {
         return try {
             suspendCancellableCoroutine { continuation ->
-                // Search by username containing the query
                 usersRef.orderByChild("email")
                     .startAt(query.lowercase())
                     .endAt(query.lowercase() + "\uf8ff")
@@ -47,7 +46,55 @@ class FriendsRepositoryImpl : FriendsRepository {
                                 }
                             }
 
-                            continuation.resume(Result.success(users))
+                            // Bước 2: lấy tất cả friend requests liên quan
+                            friendRequestsRef.addListenerForSingleValueEvent(object : ValueEventListener {
+                                override fun onDataChange(requestsSnapshot: DataSnapshot) {
+                                    val sentMap = mutableMapOf<String, RequestStatus>()
+                                    val receivedMap = mutableMapOf<String, RequestStatus>()
+
+                                    requestsSnapshot.children.forEach {
+                                        val request = it.getValue(FriendRequest::class.java) ?: return@forEach
+                                        if (request.senderId == currentUserId) {
+                                            sentMap[request.receiverId] = request.status
+                                        } else if (request.receiverId == currentUserId) {
+                                            receivedMap[request.senderId] = request.status
+                                        }
+                                    }
+
+                                    // Bước 3: lấy danh sách bạn bè
+                                    friendsRef.child(currentUserId)
+                                        .addListenerForSingleValueEvent(object : ValueEventListener {
+                                            override fun onDataChange(friendsSnapshot: DataSnapshot) {
+                                                val friendIds = friendsSnapshot.children.mapNotNull {
+                                                    val friend = it.getValue(Friend::class.java)
+                                                    friend?.user?.userId
+                                                }.toSet()
+
+                                                // Bước 4: gán requestStatus cho từng user
+                                                val updatedUsers = users.map { user ->
+                                                    val id = user.userId
+                                                    val status = when {
+                                                        friendIds.contains(id) -> RequestStatus.ACCEPTED
+                                                        sentMap.containsKey(id) -> sentMap[id]
+                                                        receivedMap.containsKey(id) -> receivedMap[id]
+                                                        else -> null
+                                                    }
+                                                    user.copy(requestStatus = status)
+                                                }
+
+                                                continuation.resume(Result.success(updatedUsers))
+                                            }
+
+                                            override fun onCancelled(error: DatabaseError) {
+                                                continuation.resume(Result.failure(Exception(error.message)))
+                                            }
+                                        })
+                                }
+
+                                override fun onCancelled(error: DatabaseError) {
+                                    continuation.resume(Result.failure(Exception(error.message)))
+                                }
+                            })
                         }
 
                         override fun onCancelled(error: DatabaseError) {
@@ -60,10 +107,14 @@ class FriendsRepositoryImpl : FriendsRepository {
         }
     }
 
+
+
+
     override suspend fun sendFriendRequest(userId: String): Result<Boolean> {
         return try {
             suspendCancellableCoroutine { continuation ->
                 // Check if friend request already exists
+
                 friendRequestsRef
                     .orderByChild("senderId")
                     .equalTo(currentUserId)
