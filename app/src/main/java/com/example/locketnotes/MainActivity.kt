@@ -6,23 +6,20 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.locketnotes.ui.theme.LocketNotesTheme
-import com.example.locketnotes.presentation.Camera.CameraScreen
-import com.example.locketnotes.presentation.Camera.LoginScreen
-import com.example.locketnotes.presentation.Camera.MyProfileScreen
-import com.example.locketnotes.presentation.Camera.RegisterScreen
-import com.example.locketnotes.presentation.Camera.SettingsScreen
+import com.example.locketnotes.presentation.Camera.*
 import com.example.locketnotes.presentation.chat.MessengerScreen
 import com.example.locketnotes.presentation.friends.FriendsScreen
-//import com.example.locketnotes.presentation.friends.FriendsScreen
 import com.example.locketnotes.presentation.screens.MyStoriesScreen
 import com.example.locketnotes.presentation.screens.NewsFeedScreen
+import com.example.locketnotes.ui.theme.LocketNotesTheme
+import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -32,9 +29,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         if (!arePermissionsGranted()) {
-            ActivityCompat.requestPermissions(
-                this, CAMERA_PERMISSION, 100
-            )
+            ActivityCompat.requestPermissions(this, CAMERA_PERMISSION, 100)
         }
 
         setContent {
@@ -53,8 +48,9 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+
     companion object {
-        val CAMERA_PERMISSION = arrayOf(
+        private val CAMERA_PERMISSION = arrayOf(
             Manifest.permission.CAMERA,
             Manifest.permission.RECORD_AUDIO,
         )
@@ -63,16 +59,21 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun AppNavigation(activity: Activity) {
     val navController = rememberNavController()
+    val auth = FirebaseAuth.getInstance()
+    val currentUser = auth.currentUser
 
-    NavHost(navController = navController, startDestination = "login") {
+    // Auto-login: kiểm tra nếu đã đăng nhập -> vào camera, chưa thì login
+    val startDestination = if (currentUser == null) "login" else "camera"
+
+    NavHost(navController = navController, startDestination = startDestination) {
         composable("register") { RegisterScreen(navController = navController) }
         composable("login") { LoginScreen(navController) }
-        composable("camera") {CameraScreen(activity, navController) }
-        composable("chat") {MessengerScreen()}
-        composable("MyStories") { MyStoriesScreen(navController)}
+        composable("camera") { CameraScreen(activity, navController) }
+        composable("chat") { MessengerScreen() }
+        composable("MyStories") { MyStoriesScreen(navController) }
         composable("setting") { SettingsScreen(navController) }
         composable("myprofile") { MyProfileScreen(navController) }
-        composable("friends"){FriendsScreen(navController)}
+        composable("friends") { FriendsScreen(navController) }
         composable("newsfeed") { NewsFeedScreen(navController = navController) }
     }
 }

@@ -2,6 +2,7 @@ package com.example.locketnotes.presentation.Camera
 
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -17,11 +18,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.example.locketnotes.presentation.domain.model.UserData
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
-import androidx.compose.foundation.clickable
-import com.example.locketnotes.presentation.domain.model.UserData
-
+import com.example.locketnotes.presentation.components.BottomNavBar
 
 @Composable
 fun SettingsScreen(navController: NavController) {
@@ -139,6 +139,11 @@ fun SettingsScreen(navController: NavController) {
                 }
             }
         }
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        // ✅ Thêm BottomNavBar ở cuối
+        BottomNavBar(navController = navController)
     }
 }
 
@@ -149,7 +154,7 @@ fun SettingItem(label: String, icon: androidx.compose.ui.graphics.vector.ImageVe
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable{ onClick() }
+                .clickable { onClick() }
                 .padding(horizontal = 20.dp, vertical = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically

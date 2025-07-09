@@ -51,6 +51,6 @@ fun NewsFeedScreen(
         }
 
         // Bottom Navigation Bar
-        BottomNavBar()
+        BottomNavBar(navController = navController)
     }
 }

@@ -24,7 +24,7 @@ fun MyStoriesScreen(
 ) {
     Scaffold(
         topBar = { TopBar(centerText = "My story", navController = navController) },
-        bottomBar = { BottomNavBar() },
+        bottomBar = {  BottomNavBar(navController = navController) },
         floatingActionButton = {
             FloatingActionButton(onClick = { addNewStory(viewModel) }) {
                 Icon(Icons.Default.Add, contentDescription = "Add story")

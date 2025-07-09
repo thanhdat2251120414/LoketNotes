@@ -29,16 +29,15 @@ import java.util.*
 fun PostItem(post: Post, currentUserId: String) {
     var isLiked by remember { mutableStateOf(false) }
     var likeCount by remember { mutableStateOf(post.likes) }
+
     val context = LocalContext.current
 
-    // Load trạng thái like và số lượt like từ Firebase
+    // Load like data from Firebase
     LaunchedEffect(post.id) {
         val db = FirebaseDatabase.getInstance()
-        val photoRef = db.getReference("user").child(post.userId).child("photos").child(post.id)
+        val photoRef = db.getReference("user/${post.userId}/photos/${post.id}")
 
-        // Load like count
-        val likesRef = photoRef.child("likes")
-        likesRef.addValueEventListener(object : ValueEventListener {
+        photoRef.child("likes").addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 likeCount = snapshot.getValue(Int::class.java) ?: 0
             }
@@ -48,9 +47,7 @@ fun PostItem(post: Post, currentUserId: String) {
             }
         })
 
-        // Check if user already liked
-        val likedByRef = photoRef.child("likedBy").child(currentUserId)
-        likedByRef.addListenerForSingleValueEvent(object : ValueEventListener {
+        photoRef.child("likedBy").child(currentUserId).addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 isLiked = snapshot.exists()
             }
@@ -61,108 +58,110 @@ fun PostItem(post: Post, currentUserId: String) {
         })
     }
 
-    // UI
-    Column(
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White)
-            .padding(12.dp)
-            .clip(RoundedCornerShape(12.dp))
+            .padding(vertical = 8.dp),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        // Header
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            AsyncImage(
-                model = post.userAvatar,
-                contentDescription = "User Avatar",
-                modifier = Modifier.size(40.dp).clip(CircleShape)
-            )
-            Column(modifier = Modifier.padding(start = 8.dp)) {
-                Text(post.username, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Text(
-                    SimpleDateFormat("HH:mm dd/MM/yyyy", Locale.getDefault()).format(Date(post.timestamp)),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.Gray
+        Column(modifier = Modifier.fillMaxWidth().background(Color.White)) {
+
+            // Header: avatar + name + time
+            Row(
+                modifier = Modifier
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                AsyncImage(
+                    model = post.userAvatar,
+                    contentDescription = "User Avatar",
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(CircleShape)
                 )
+                Spacer(modifier = Modifier.width(8.dp))
+                Column {
+                    Text(
+                        text = post.username,
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                    )
+                    Text(
+                        text = SimpleDateFormat("dd MMM yyyy • HH:mm", Locale.getDefault()).format(Date(post.timestamp)),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.Gray
+                    )
+                }
             }
-        }
 
-        Spacer(modifier = Modifier.height(10.dp))
+            // Post Image full width
+            AsyncImage(
+                model = post.imageUrl,
+                contentDescription = "Post Image",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f) // makes it square
+                    .clip(RoundedCornerShape(0.dp))
+            )
 
-        // Image
-        AsyncImage(
-            model = post.imageUrl,
-            contentDescription = "Post Image",
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(250.dp)
-                .clip(RoundedCornerShape(10.dp))
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Like Count
-        Text(
-            text = "$likeCount lượt thích",
-            style = MaterialTheme.typography.labelSmall,
-            modifier = Modifier.padding(horizontal = 8.dp),
-            color = Color.Gray
-        )
-
-        // Caption
-        Text(
-            text = post.message,
-            modifier = Modifier.padding(horizontal = 8.dp)
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Action Buttons
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Like / Unlike
-            IconButton(
-                onClick = {
-                    if (!isLiked) {
-                        isLiked = true
+            // Action Buttons
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = {
+                    isLiked = !isLiked
+                    if (isLiked) {
                         incrementLike(post.userId, post.id, currentUserId)
                     } else {
-                        isLiked = false
                         decrementLike(post.userId, post.id, currentUserId)
                     }
+                }) {
+                    Icon(
+                        imageVector = Icons.Default.Favorite,
+                        contentDescription = "Like",
+                        tint = if (isLiked) Color.Red else Color.Black
+                    )
                 }
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Favorite,
-                    contentDescription = "Like",
-                    tint = if (isLiked) Color.Red else Color.Gray
+
+                IconButton(onClick = {
+                    showUsersWhoLiked(post.userId, post.id)
+                }) {
+                    Icon(Icons.Default.ChatBubble, contentDescription = "Comments", tint = Color.Black)
+                }
+
+                IconButton(onClick = { /* TODO: Share */ }) {
+                    Icon(Icons.Default.Share, contentDescription = "Share", tint = Color.Black)
+                }
+            }
+
+            // Like count
+            if (likeCount > 0) {
+                Text(
+                    text = "$likeCount lượt thích",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(horizontal = 12.dp),
+                    color = Color.Black
                 )
             }
 
-            // View likers
-            IconButton(onClick = {
-                showUsersWhoLiked(post.userId, post.id)
-            }) {
-                Icon(Icons.Default.ChatBubble, contentDescription = "View Likers", tint = Color.Gray)
+            // Caption
+            if (post.message.isNotBlank()) {
+                Text(
+                    text = post.message,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                    color = Color.Black
+                )
             }
 
-            IconButton(onClick = { /* TODO: Share */ }) {
-                Icon(Icons.Default.Share, contentDescription = "Share", tint = Color.Gray)
-            }
-        }
-
-        if (isLiked) {
-            Text(
-                text = "Bạn đã thích bài viết này ❤️",
-                modifier = Modifier.padding(start = 16.dp, top = 4.dp),
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.Red
-            )
+            Spacer(modifier = Modifier.height(4.dp))
         }
     }
 }
+
 
 
 
