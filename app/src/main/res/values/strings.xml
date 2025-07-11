@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">LocketNotes</string>
+    <string name="open_gallery">Open gallery</string>
+    <string name="record_video">Record Video</string>
+    <string name="take_photo">Take photo</string>
+    <string name="switch_camera_preview">Switch camera preview</string>
+    <string name="default_web_client_id">1057012748159-6vd4s9h8qjn5nilm2cn399otlru87rlb.apps.googleusercontent.com</string>
+
+</resources>
