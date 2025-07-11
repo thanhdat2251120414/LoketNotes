@@ -24,7 +24,6 @@ import androidx.core.content.ContextCompat
 import com.example.homeloketnotes.data.repository.uploadToCloudinary
 import com.example.locketnotes.R
 import com.example.locketnotes.presentation.domain.model.PhotoUpload
-import com.example.locketnotes.presentation.domain.repositry.CameraRepository
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase

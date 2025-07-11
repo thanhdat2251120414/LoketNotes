@@ -4,7 +4,7 @@ import android.graphics.Bitmap
 import androidx.camera.view.LifecycleCameraController
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.locketnotes.presentation.domain.repositry.CameraRepository
+import com.example.locketnotes.presentation.data.repository.CameraRepository
 
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow

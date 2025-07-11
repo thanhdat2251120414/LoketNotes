@@ -1,7 +1,7 @@
 package com.example.locketnotes.presentation.di
 
 import com.example.locketnotes.presentation.data.repository.CameraRepositoryImpl
-import com.example.locketnotes.presentation.domain.repositry.CameraRepository
+import com.example.locketnotes.presentation.data.repository.CameraRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
