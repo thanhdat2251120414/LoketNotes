@@ -106,11 +106,25 @@ class FriendsViewModel(
     fun sendFriendRequest(userId: String) {
         viewModelScope.launch {
             repository.sendFriendRequest(userId).fold(
-                onSuccess = { showToast("Đã gửi lời mời kết bạn") },
-                onFailure = { error -> showToast("Không thể gửi lời mời: ${error.message}") }
+                onSuccess = {
+                    showToast("Đã gửi lời mời kết bạn")
+
+                    // Cập nhật trạng thái PENDING cho user tương ứng trong searchResults
+                    _uiState.value = _uiState.value.copy(
+                        searchResults = _uiState.value.searchResults.map { user ->
+                            if (user.userId == userId) {
+                                user.copy(requestStatus = com.example.locketnotes.presentation.domain.model.RequestStatus.PENDING)
+                            } else user
+                        }
+                    )
+                },
+                onFailure = { error ->
+                    showToast("Không thể gửi lời mời: ${error.message}")
+                }
             )
         }
     }
+
 
     fun acceptFriendRequest(requestId: String) {
         viewModelScope.launch {
@@ -143,11 +157,18 @@ class FriendsViewModel(
                 onSuccess = {
                     showToast("Đã xóa bạn bè")
                     loadFriends()
+
+                    // ✅ Gọi lại search nếu đang có kết quả tìm kiếm
+                    val currentQuery = _uiState.value.searchResults.firstOrNull()?.email ?: ""
+                    if (currentQuery.isNotBlank()) {
+                        searchUsers(currentQuery)
+                    }
                 },
                 onFailure = { error -> showToast("Không thể xóa bạn: ${error.message}") }
             )
         }
     }
+
 
     fun blockUser(userId: String) {
         viewModelScope.launch {

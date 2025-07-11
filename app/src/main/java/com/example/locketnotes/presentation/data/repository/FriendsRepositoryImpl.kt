@@ -18,6 +18,7 @@ class FriendsRepositoryImpl @Inject constructor() : FriendsRepository {
     private val database = FirebaseDatabase.getInstance()
     private val auth = FirebaseAuth.getInstance()
 
+    // Direct references to Firebase paths
     private val usersRef = database.reference.child("user")
     private val friendRequestsRef = database.reference.child("friendRequests")
     private val friendsRef = database.reference.child("friends")
@@ -40,13 +41,11 @@ class FriendsRepositoryImpl @Inject constructor() : FriendsRepository {
                             snapshot.children.forEach { userSnapshot ->
                                 val user = userSnapshot.getValue(UserData::class.java)
                                 val userId = userSnapshot.key
-
                                 if (user != null && userId != null && userId != currentUserId) {
                                     users.add(user.copy(userId = userId))
                                 }
                             }
 
-                            // Bước 2: lấy tất cả friend requests liên quan
                             friendRequestsRef.addListenerForSingleValueEvent(object : ValueEventListener {
                                 override fun onDataChange(requestsSnapshot: DataSnapshot) {
                                     val sentMap = mutableMapOf<String, RequestStatus>()
@@ -61,7 +60,6 @@ class FriendsRepositoryImpl @Inject constructor() : FriendsRepository {
                                         }
                                     }
 
-                                    // Bước 3: lấy danh sách bạn bè
                                     friendsRef.child(currentUserId)
                                         .addListenerForSingleValueEvent(object : ValueEventListener {
                                             override fun onDataChange(friendsSnapshot: DataSnapshot) {
@@ -70,11 +68,11 @@ class FriendsRepositoryImpl @Inject constructor() : FriendsRepository {
                                                     friend?.user?.userId
                                                 }.toSet()
 
-                                                // Bước 4: gán requestStatus cho từng user
                                                 val updatedUsers = users.map { user ->
                                                     val id = user.userId
                                                     val status = when {
                                                         friendIds.contains(id) -> RequestStatus.ACCEPTED
+                                                        sentMap[id] == RequestStatus.DECLINED || receivedMap[id] == RequestStatus.DECLINED -> null
                                                         sentMap.containsKey(id) -> sentMap[id]
                                                         receivedMap.containsKey(id) -> receivedMap[id]
                                                         else -> null
@@ -369,22 +367,16 @@ class FriendsRepositoryImpl @Inject constructor() : FriendsRepository {
     override suspend fun removeFriend(friendId: String): Result<Boolean> {
         return try {
             suspendCancellableCoroutine { continuation ->
-                // Get the friend to remove
                 friendsRef.child(currentUserId).child(friendId).addListenerForSingleValueEvent(object : ValueEventListener {
                     override fun onDataChange(friendSnapshot: DataSnapshot) {
                         val friend = friendSnapshot.getValue(Friend::class.java)
-
                         if (friend != null) {
-                            // Find corresponding friendship in other user's list
                             friendsRef.child(friend.user.userId).orderByChild("user/userId").equalTo(currentUserId)
                                 .addListenerForSingleValueEvent(object : ValueEventListener {
                                     override fun onDataChange(otherSnapshot: DataSnapshot) {
                                         val updates = hashMapOf<String, Any?>()
-
-                                        // Remove from current user's friends
                                         updates["friends/$currentUserId/$friendId"] = null
 
-                                        // Remove from other user's friends
                                         otherSnapshot.children.forEach { otherFriendSnapshot ->
                                             val otherFriendId = otherFriendSnapshot.key
                                             if (otherFriendId != null) {
@@ -392,13 +384,30 @@ class FriendsRepositoryImpl @Inject constructor() : FriendsRepository {
                                             }
                                         }
 
-                                        database.reference.updateChildren(updates)
-                                            .addOnSuccessListener {
-                                                continuation.resume(Result.success(true))
-                                            }
-                                            .addOnFailureListener { error ->
-                                                continuation.resume(Result.failure(error))
-                                            }
+                                        friendRequestsRef.orderByChild("senderId")
+                                            .equalTo(currentUserId)
+                                            .addListenerForSingleValueEvent(object : ValueEventListener {
+                                                override fun onDataChange(snapshot: DataSnapshot) {
+                                                    snapshot.children.forEach { requestSnap ->
+                                                        val request = requestSnap.getValue(FriendRequest::class.java)
+                                                        val requestId = requestSnap.key ?: return@forEach
+
+                                                        if (request != null && ((request.receiverId == friend.user.userId && request.senderId == currentUserId)
+                                                                    || (request.senderId == friend.user.userId && request.receiverId == currentUserId))
+                                                        ) {
+                                                            updates["friendRequests/$requestId/status"] = RequestStatus.DECLINED.name
+                                                        }
+                                                    }
+
+                                                    database.reference.updateChildren(updates)
+                                                        .addOnSuccessListener { continuation.resume(Result.success(true)) }
+                                                        .addOnFailureListener { error -> continuation.resume(Result.failure(error)) }
+                                                }
+
+                                                override fun onCancelled(error: DatabaseError) {
+                                                    continuation.resume(Result.failure(Exception(error.message)))
+                                                }
+                                            })
                                     }
 
                                     override fun onCancelled(error: DatabaseError) {
@@ -419,6 +428,7 @@ class FriendsRepositoryImpl @Inject constructor() : FriendsRepository {
             Result.failure(e)
         }
     }
+
 
     override suspend fun blockUser(userId: String): Result<Boolean> {
         return try {
