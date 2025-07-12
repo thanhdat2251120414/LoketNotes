@@ -11,6 +11,7 @@ import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -32,12 +33,12 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.example.homeloketnotes.presentation.PreviewPhoto
 import com.example.locketnotes.MainActivity
 import com.example.locketnotes.R
 import com.example.locketnotes.presentation.components.BottomNavBar
 import com.example.locketnotes.presentation.components.TopBar
 import com.example.locketnotes.presentation.viewmodel.CameraViewModel
+import com.example.loketnotes.presentation.PreviewPhoto
 
 @Composable
 fun CameraScreen(
@@ -74,51 +75,51 @@ fun CameraScreen(
         )
     } else {
         Box(modifier = Modifier.fillMaxSize()) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
+            LazyColumn(
+                modifier = Modifier.fillMaxSize()
             ) {
-                // ✅ Gọi lại TopBar
-                TopBar(centerText = "Loket Camera", navController = navController)
+                item {
+                    TopBar(centerText = "Loket Camera", navController = navController)
+                }
 
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 12.dp),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Box(
+                item {
+                    Row(
                         modifier = Modifier
-                            .width(150.dp)
-                            .height(40.dp)
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(Color.LightGray)
-                            .clickable {
-                                navController.navigate("friends")
-                            },
-                        contentAlignment = Alignment.Center
+                            .fillMaxWidth()
+                            .padding(top = 12.dp),
+                        horizontalArrangement = Arrangement.Center
                     ) {
-                        Text(
-                            text = "Friend",
-                            fontSize = 20.sp,
-                        )
+                        Box(
+                            modifier = Modifier
+                                .width(150.dp)
+                                .height(40.dp)
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(Color.LightGray)
+                                .clickable {
+                                    navController.navigate("friends")
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "Friend",
+                                fontSize = 20.sp,
+                            )
+                        }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(50.dp))
+                item {
+                    Spacer(modifier = Modifier.height(50.dp))
+                }
 
-                // Camera View
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .weight(1f)
-                        .background(Color.White),
-                ) {
+                item {
                     val lifecycleOwner = LocalLifecycleOwner.current
 
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.wrapContentHeight()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color.White)
                     ) {
                         AndroidView(
                             modifier = Modifier
@@ -165,8 +166,6 @@ fun CameraScreen(
                                 )
                             }
 
-                            Spacer(modifier = Modifier.width(1.dp))
-
                             // Take Photo
                             Box(
                                 modifier = Modifier
@@ -188,8 +187,6 @@ fun CameraScreen(
                                     modifier = Modifier.size(28.dp)
                                 )
                             }
-
-                            Spacer(modifier = Modifier.width(1.dp))
 
                             // Switch Camera
                             Box(
@@ -214,11 +211,14 @@ fun CameraScreen(
                                 )
                             }
                         }
+
+                        Spacer(modifier = Modifier.height(24.dp))
                     }
                 }
 
-                // ✅ Bottom Navigation Bar
-                BottomNavBar(navController = navController)
+                item {
+                    BottomNavBar(navController = navController)
+                }
             }
         }
     }

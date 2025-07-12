@@ -25,6 +25,9 @@ import com.example.locketnotes.presentation.domain.model.UserData
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import kotlinx.coroutines.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 
 @Composable
 fun MyProfileScreen(navController: NavController) {
@@ -73,123 +76,132 @@ fun MyProfileScreen(navController: NavController) {
         }
     }
 
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        contentPadding = PaddingValues(bottom = 32.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Header
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 50.dp)
-        ) {
-            IconButton(
-                onClick = { navController.popBackStack() },
-                modifier = Modifier.align(Alignment.CenterStart)
+        item {
+            // Header
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 50.dp)
             ) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                IconButton(
+                    onClick = { navController.popBackStack() },
+                    modifier = Modifier.align(Alignment.CenterStart)
+                ) {
+                    Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                }
+                Text(
+                    text = "Edit profile",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.align(Alignment.Center)
+                )
             }
-            Text(
-                text = "Edit profile",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.align(Alignment.Center)
+        }
+
+        item {
+            // Avatar
+            Box(
+                contentAlignment = Alignment.BottomEnd,
+                modifier = Modifier.size(120.dp)
+            ) {
+                if (!selectedImageUri.isNullOrBlank()) {
+                    AsyncImage(
+                        model = selectedImageUri,
+                        contentDescription = "Avatar",
+                        modifier = Modifier
+                            .size(120.dp)
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.AccountCircle,
+                        contentDescription = "Default Avatar",
+                        modifier = Modifier
+                            .size(120.dp)
+                            .clip(CircleShape),
+                        tint = Color.Gray
+                    )
+                }
+
+                IconButton(
+                    onClick = { imagePickerLauncher.launch("image/*") },
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_camera),
+                        contentDescription = "Change Avatar",
+                        tint = Color.Unspecified
+                    )
+                }
+            }
+        }
+
+        item {
+            EditableProfileField(label = "User name", value = username) { username = it }
+        }
+
+        item {
+            ReadOnlyProfileField(label = "Email", value = email)
+        }
+
+        item {
+            GenderDropdownField(
+                label = "Gender",
+                selectedGender = gender,
+                options = genderOptions,
+                expanded = expandedGender,
+                onExpandedChange = { expandedGender = it },
+                onGenderSelected = { gender = it }
             )
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Avatar
-        Box(
-            contentAlignment = Alignment.BottomEnd,
-            modifier = Modifier.size(120.dp)
-        ) {
-            if (!selectedImageUri.isNullOrBlank()) {
-                AsyncImage(
-                    model = selectedImageUri,
-                    contentDescription = "Avatar",
-                    modifier = Modifier
-                        .size(120.dp)
-                        .clip(CircleShape),
-                    contentScale = ContentScale.Crop
-                )
-            } else {
-                Icon(
-                    imageVector = Icons.Default.AccountCircle,
-                    contentDescription = "Default Avatar",
-                    modifier = Modifier
-                        .size(120.dp)
-                        .clip(CircleShape),
-                    tint = Color.Gray
-                )
-            }
-
-            IconButton(
-                onClick = { imagePickerLauncher.launch("image/*") },
-                modifier = Modifier.size(32.dp)
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_camera),
-                    contentDescription = "Change Avatar",
-                    tint = Color.Unspecified
-                )
-            }
+        item {
+            DatePickerField(
+                label = "Date of birth",
+                selectedDate = dob,
+                showDatePicker = showDatePicker,
+                onShowDatePickerChange = { showDatePicker = it },
+                onDateSelected = { dob = it }
+            )
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        EditableProfileField(label = "User name", value = username) { username = it }
-        ReadOnlyProfileField(label = "Email", value = email)
-
-        GenderDropdownField(
-            label = "Gender",
-            selectedGender = gender,
-            options = genderOptions,
-            expanded = expandedGender,
-            onExpandedChange = { expandedGender = it },
-            onGenderSelected = { gender = it }
-        )
-
-        DatePickerField(
-            label = "Date of birth",
-            selectedDate = dob,
-            showDatePicker = showDatePicker,
-            onShowDatePickerChange = { showDatePicker = it },
-            onDateSelected = { dob = it }
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Button(
-            onClick = {
-                if (userId == null) {
-                    Toast.makeText(context, "Không tìm thấy user!", Toast.LENGTH_SHORT).show()
-                    return@Button
-                }
-
-                updateUserProfile(
-                    context = context,
-                    coroutineScope = coroutineScope,
-                    userId = userId,
-                    username = username,
-                    email = email,
-                    gender = gender,
-                    dob = dob,
-                    selectedImageUri = selectedImageUri,
-                    onSuccess = {
-                        Toast.makeText(context, "Cập nhật thành công!", Toast.LENGTH_SHORT).show()
-                    },
-                    onError = { error ->
-                        Toast.makeText(context, "Lỗi: $error", Toast.LENGTH_SHORT).show()
+        item {
+            Button(
+                onClick = {
+                    if (userId == null) {
+                        Toast.makeText(context, "Không tìm thấy user!", Toast.LENGTH_SHORT).show()
+                        return@Button
                     }
-                )
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Save")
+
+                    updateUserProfile(
+                        context = context,
+                        coroutineScope = coroutineScope,
+                        userId = userId,
+                        username = username,
+                        email = email,
+                        gender = gender,
+                        dob = dob,
+                        selectedImageUri = selectedImageUri,
+                        onSuccess = {
+                            Toast.makeText(context, "Cập nhật thành công!", Toast.LENGTH_SHORT).show()
+                        },
+                        onError = { error ->
+                            Toast.makeText(context, "Lỗi: $error", Toast.LENGTH_SHORT).show()
+                        }
+                    )
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Save")
+            }
         }
     }
 }
-
-
